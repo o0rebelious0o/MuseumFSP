@@ -1,0 +1,35 @@
+//Define Max Capacity of Museum
+const N = 10
+range R = 1..N
+
+//Entry at the East Turnstile
+EAST = (enter -> EAST).
+//Exit at the West Turnstile
+WEST = (exit -> WEST).
+//Director may Open or Close the museum
+DIRECTOR = (open -> DIRECTOR | close -> DIRECTOR).
+//Control Subsystem Controlling Museum Visitor Numbers
+POPCOUNT = POPCOUNT[0],
+POPCOUNT[n:0..N] = (when (n == 0) empty -> POPCOUNT | when (n < N) enter -> POPCOUNT[n+1] | when (n > 0) exit -> POPCOUNT[n-1]).
+//Control Subsystem Controlling Turnstiles
+ENTRYCONTROL = ENTRYCONTROL[0],
+ENTRYCONTROL[0] = (exit-> ENTRYCONTROL[0] | empty -> ENTRYCONTROL[1]),
+ENTRYCONTROL[1] = (enter -> ENTRYCONTROL[1] | exit -> ENTRYCONTROL[1] | close -> ENTRYCONTROL[0]).
+//Control is a Composite System
+||CONTROL = (POPCOUNT || ENTRYCONTROL).
+
+//Museum is a Composite of all Subsystems
+||MUSEUM = (EAST || WEST || DIRECTOR || CONTROL)/{open/empty}.
+
+//TEST = ( {open , enter , exit } -> TEST | close -> CHECK).
+//CHECK = ( open -> TEST | exit -> CHECK | enter -> ERROR ).
+//||MUSEUMTEST = (TEST || MUSEUM).
+
+TEST = TEST[0],
+TEST[v:0..N] = (when (v==0) open -> TEST[v+1] | when (v<N && v>0){enter}-> TEST[v+1] | close -> CHECK[v]),
+CHECK[v:0..N] = (when (v==1) empty -> right -> STOP | when (v<N && v>1) exit -> CHECK[v-1] | enter -> error -> ERROR ).
+
+|| TESTMUSEUM = (TEST || MUSEUM).
+
+P = STOP +{exit}.
+||SYSTEMDEADLOCK = (P || MUSEUM).
